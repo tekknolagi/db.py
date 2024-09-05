@@ -53,7 +53,7 @@ class Database:
         )
 
     def WHERE(self, table, pred):
-        return Table(table.name, [row for row in table.rows if pred(row)])
+        return table.filter(pred)
 
     def INSERT_INTO(self, table_name, *rows):
         table = self.tables[table_name]
@@ -150,8 +150,8 @@ db.INSERT_INTO("Post", {"id": 2, "user_id": 10, "text": "Hello from an unknown U
 
 User = db.FROM("User")
 Post = db.FROM("Post")
-# result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+# result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
 # result = db.SELECT(
 #     result,
 #     ["User.age", "User.name", "Post.text"],
