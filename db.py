@@ -91,13 +91,12 @@ class Database:
             if match:
                 rows.extend(match)
             else:
-                aValues = {}
-                bValues = {}
-                for key in aRow:
-                    aValues[f"{a.name}.{key}"] = aRow[key]
-                for key in b.rows[0]:
-                    bValues[f"{b.name}.{key}"] = None
-                rows.append({**aValues, **bValues})
+                rows.append(
+                    {
+                        **{f"{a.name}.{key}": aRow[key] for key in aRow},
+                        **{f"{b.name}.{key}": None for key in b.rows[0]},
+                    }
+                )
         return Table("", rows)
 
     def RIGHT_JOIN(self, a, b, pred):
