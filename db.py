@@ -85,9 +85,8 @@ class Database:
             for y in b.rows:
                 rows.append(
                     {
-                        **{f"{a.name}.{k}": x[k] for k in x},
-                        **{f"{b.name}.{k}": y[k] for k in y},
-                        "_tableRows": (x, y),
+                        **{f"{a.name}.{k}": x[k] for k in a.colnames()},
+                        **{f"{b.name}.{k}": y[k] for k in b.colnames()},
                     }
                 )
         return Table("", rows)
@@ -144,9 +143,6 @@ class Database:
 
 
 def csv(table):
-    for row in table.rows:
-        if "_tableRows" in row:
-            del row["_tableRows"]
     print(",".join(table.colnames()))
     for row in table.rows:
         print(",".join(str(val) for val in row.values()))
