@@ -387,6 +387,14 @@ class DatabaseTests(unittest.TestCase):
         result = db.LIMIT(table, 2)
         self.assertEqual(result.rows, ({"a": 1}, {"a": 2}))
 
+    def test_order_by_sorts_by_single_column(self):
+        db = Database()
+        table = Table("foo", [{"a": 3, "b": 2}, {"a": 1, "b": 2}, {"a": 2, "b": 2}])
+        result = db.ORDER_BY(table, lambda row: row["a"])
+        self.assertEqual(
+            result.rows, ({"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 3, "b": 2})
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

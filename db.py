@@ -121,9 +121,8 @@ class Database:
         return Table(table.name, table.rows[:limit])
 
     def ORDER_BY(self, table, rel):
-        # JS version does sort with lambda taking a and b; Python 3 sort
-        # function takes a single argument, so we need to convert
-        return Table(table.name, sorted(table.rows, key=functools.cmp_to_key(rel)))
+        # Differs from JS version by passing the whole row to the comparator
+        return Table(table.name, sorted(table.rows, key=rel))
 
     def HAVING(self, table, pred):
         return table.filter(pred)
