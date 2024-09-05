@@ -118,12 +118,13 @@ class Database:
         return Table(table.name, table.rows[offset:])
 
     def DISTINCT(self, table, columns):
-        _distinct = {US.join(str(row[col]) for col in columns): row for row in table.rows}
-        return Table(table.name, [
-            {col: _distinct[key][col] for col in columns}
-            for key in _distinct
-        ])
-
+        _distinct = {
+            US.join(str(row[col]) for col in columns): row for row in table.rows
+        }
+        return Table(
+            table.name,
+            [{col: _distinct[key][col] for col in columns} for key in _distinct],
+        )
 
     def __repr__(self):
         return f"Database({list(self.tables.keys())!r})"
