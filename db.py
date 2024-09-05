@@ -7,8 +7,14 @@ class Table:
     def __init__(self, name: str, rows: tuple[dict] = ()):
         self.name = name
         self.rows = tuple(rows)
+        self._colnames = ()
+
+    def set_colnames(self, colnames):
+        self._colnames = tuple(sorted(colnames))
 
     def colnames(self):
+        if self._colnames:
+            return self._colnames
         if not self.rows:
             raise ValueError("Need either rows or manually specified column names")
         return tuple(sorted(self.rows[0].keys()))
@@ -33,8 +39,10 @@ class Database:
     def __init__(self):
         self.tables = {}
 
-    def CREATE_TABLE(self, name):
+    def CREATE_TABLE(self, name, colnames=()):
         table = empty_table(name)
+        if colnames:
+            table.set_colnames(colnames)
         self.tables[name] = table
         return table
 
@@ -145,17 +153,18 @@ def csv(table):
 
 
 db = Database()
-db.CREATE_TABLE("User")
+db.CREATE_TABLE("User", ["id", "name", "age"])
 db.INSERT_INTO("User", {"id": 0, "name": "Alice", "age": 25})
 db.INSERT_INTO("User", {"id": 1, "name": "Bob", "age": 28})
 db.INSERT_INTO("User", {"id": 2, "name": "Charles", "age": 29})
 db.INSERT_INTO("User", {"id": 3, "name": "Charles", "age": 35})
 db.INSERT_INTO("User", {"id": 4, "name": "Alice", "age": 35})
 db.INSERT_INTO("User", {"id": 5, "name": "Jeremy", "age": 28})
-db.CREATE_TABLE("Post")
+db.CREATE_TABLE("Post", ["id", "user_id", "text"])
 db.INSERT_INTO("Post", {"id": 0, "user_id": 1, "text": "Hello from Bob"})
-db.INSERT_INTO("Post", {"id": 1, "user_id": 0, "text": "Hello from Alice"})
-db.INSERT_INTO("Post", {"id": 2, "user_id": 10, "text": "Hello from an unknown User"})
+db.INSERT_INTO("Post", {"id": 1, "user_id": 1, "text": "Hello again from Bob"})
+# db.INSERT_INTO("Post", {"id": 2, "user_id": 0, "text": "Hello from Alice"})
+# db.INSERT_INTO("Post", {"id": 3, "user_id": 10, "text": "Hello from an unknown User"})
 
 User = db.FROM("User")
 Post = db.FROM("Post")
