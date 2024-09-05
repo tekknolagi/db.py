@@ -119,13 +119,10 @@ class Database:
 
     def DISTINCT(self, table, columns):
         _distinct = {US.join(str(row[col]) for col in columns): row for row in table.rows}
-        newRows = []
-        for key in _distinct:
-            newRow = {}
-            for col in columns:
-                newRow[col] = _distinct[key][col]
-            newRows.append(newRow)
-        return Table(table.name, newRows)
+        return Table(table.name, [
+            {col: _distinct[key][col] for col in columns}
+            for key in _distinct
+        ])
 
 
     def __repr__(self):
@@ -157,6 +154,6 @@ User = db.FROM("User")
 
 
 result = User
-result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
+# result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
 result = db.DISTINCT(result, ["name"])
 print(result)
