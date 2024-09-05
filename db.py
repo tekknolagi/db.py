@@ -18,6 +18,10 @@ def CREATE_TABLE(name):
     return table
 
 
+def DROP_TABLE(name):
+    del database["tables"][name]
+
+
 def FROM(*table_names):
     assert len(table_names) > 0
     match table_names:
@@ -107,22 +111,53 @@ def ORDER_BY(table, rel):
     }
 
 
+def HAVING(table, pred):
+    return {"name": table["name"], "rows": [row for row in table["rows"] if pred(row)]}
+
+
+def OFFSET(table, offset):
+    return {"name": table["name"], "rows": table["rows"][offset:]}
+
+
+US = "\x1f"  # Unit Separator
+
+def DISTINCT(table, columns):
+    _distinct = {}
+    for row in table["rows"]:
+        key = US.join(str(row[col]) for col in columns)
+        _distinct[key] = row
+    newRows = []
+    for key in _distinct:
+        newRow = {}
+        for col in columns:
+            newRow[col] = _distinct[key][col]
+        newRows.append(newRow)
+    return {"name": table["name"], "rows": newRows}
+
+
 init()
 CREATE_TABLE("User")
 INSERT_INTO("User", {"id": 0, "name": "Alice", "age": 25})
 INSERT_INTO("User", {"id": 1, "name": "Bob", "age": 28})
 INSERT_INTO("User", {"id": 2, "name": "Charles", "age": 29})
+INSERT_INTO("User", {"id": 3, "name": "Charles", "age": 35})
+INSERT_INTO("User", {"id": 4, "name": "Alice", "age": 35})
+INSERT_INTO("User", {"id": 5, "name": "Jeremy", "age": 28})
 CREATE_TABLE("Post")
 INSERT_INTO("Post", {"id": 0, "user_id": 1, "text": "Hello from Bob"})
 INSERT_INTO("Post", {"id": 1, "user_id": 0, "text": "Hello from Alice"})
 
 User = FROM("User")
-Post = FROM("Post")
-result = INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-result = SELECT(
-    result,
-    ["User.age", "User.name", "Post.text"],
-    {"User.name": "Author", "Post.text": "Message"},
-)
-result = ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
+# Post = FROM("Post")
+# result = INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+# result = SELECT(
+#     result,
+#     ["User.age", "User.name", "Post.text"],
+#     {"User.name": "Author", "Post.text": "Message"},
+# )
+# result = ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
+# print(result)
+
+
+result = DISTINCT(User, ["age"])
 print(result)
