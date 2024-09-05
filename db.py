@@ -1,4 +1,5 @@
 """A medium-faithful port of https://github.com/weinberg/SQLToy to Python"""
+
 import functools
 
 
@@ -6,6 +7,11 @@ class Table:
     def __init__(self, name: str, rows: tuple[dict] = ()):
         self.name = name
         self.rows = tuple(rows)
+
+    def colnames(self):
+        if not self.rows:
+            raise ValueError("Need either rows or manually specified column names")
+        return tuple(sorted(self.rows[0].keys()))
 
     def filter(self, pred):
         return Table(self.name, [row for row in self.rows if pred(row)])
@@ -82,19 +88,21 @@ class Database:
         return self.CROSS_JOIN(a, b).filter(pred)
 
     def LEFT_JOIN(self, a, b, pred):
-        cp = self.CROSS_JOIN(a, b)
         rows = []
-        for aRow in a.rows:
-            match = [cpr for cpr in cp.rows if aRow in cpr["_tableRows"] and pred(cpr)]
-            if match:
-                rows.extend(match)
-            else:
-                rows.append(
-                    {
-                        **{f"{a.name}.{key}": aRow[key] for key in aRow},
-                        **{f"{b.name}.{key}": None for key in b.rows[0]},
-                    }
-                )
+        empty_b_row = {f"{b.name}.{k}": None for k in b.colnames()}
+        for a_row in a.rows:
+            added = False
+            mangled_a_row = {f"{a.name}.{k}": a_row[k] for k in a.colnames()}
+            for b_row in b.rows:
+                row = {
+                    **mangled_a_row,
+                    **{f"{b.name}.{k}": b_row[k] for k in b.colnames()},
+                }
+                if pred(row):
+                    rows.append(row)
+                    added = True
+            if not added:
+                rows.append({**mangled_a_row, **empty_b_row})
         return Table("", rows)
 
     def RIGHT_JOIN(self, a, b, pred):
@@ -131,7 +139,7 @@ def csv(table):
     for row in table.rows:
         if "_tableRows" in row:
             del row["_tableRows"]
-    print(",".join(table.rows[0].keys()))
+    print(",".join(table.colnames()))
     for row in table.rows:
         print(",".join(str(val) for val in row.values()))
 
@@ -151,8 +159,11 @@ db.INSERT_INTO("Post", {"id": 2, "user_id": 10, "text": "Hello from an unknown U
 
 User = db.FROM("User")
 Post = db.FROM("Post")
-result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-# result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+# result = db.CROSS_JOIN(User, Post)
+# for row in result.rows:
+#     print(row)
+# result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
 # result = db.SELECT(
 #     result,
 #     ["User.age", "User.name", "Post.text"],
