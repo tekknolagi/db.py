@@ -55,6 +55,16 @@ def INSERT_INTO(table_name, *rows):
     table["rows"].extend(rows)
 
 
+def UPDATE(table, set, pred):
+    result = {"name": table["name"], "rows": []}
+    for row in table["rows"]:
+        if pred(row):
+            result["rows"].append({**row, **set})
+        else:
+            result["rows"].append(row)
+    return result
+
+
 def CROSS_JOIN(a, b):
     result = empty_table()
     for x in a["rows"]:
@@ -159,5 +169,7 @@ User = FROM("User")
 # print(result)
 
 
-result = DISTINCT(User, ["age"])
+result = User
+result = UPDATE(User, {"name": 'CHUCK'}, lambda row: row["id"] == 2)
+result = DISTINCT(result, ["name"])
 print(result)
