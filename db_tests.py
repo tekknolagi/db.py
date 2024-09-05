@@ -83,7 +83,7 @@ class DatabaseTests(unittest.TestCase):
         result = db.FROM("foo")
         self.assertEqual(result, table)
 
-    def test_from_with_two_tables_returns_cross_join(self):
+    def test_from_with_two_tables_returns_cartesian_product(self):
         db = Database()
         db.CREATE_TABLE("foo")
         db.INSERT_INTO("foo", [{"a": 1}, {"a": 2}])
@@ -116,6 +116,59 @@ class DatabaseTests(unittest.TestCase):
         table = Table("foo", [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}])
         result = db.SELECT(table, ["a", "c"], {"a": "x"})  # a as x
         self.assertEqual(result.rows, ({"x": 1, "c": 3}, {"x": 4, "c": 6}))
+
+    def test_where_returns_matching_rows(self):
+        db = Database()
+        table = Table("foo", [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}])
+        result = db.WHERE(table, lambda row: row["a"] % 2 == 0)
+        self.assertEqual(result.rows, ({"a": 2}, {"a": 4}))
+
+    def test_update_returns_updated_table(self):
+        db = Database()
+        rows = (
+            {"id": 1, "name": "Josh", "department_id": 1, "salary": 50000},
+            {"id": 2, "name": "Ruth", "department_id": 2, "salary": 60000},
+            {"id": 3, "name": "Greg", "department_id": 5, "salary": 70000},
+            {"id": 4, "name": "Pat", "department_id": 1, "salary": 80000},
+        )
+        table = Table("employee", rows)
+        result = db.UPDATE(
+            table, {"name": "JOSH", "salary": 10}, lambda row: row["name"] == "Josh"
+        )
+        self.assertEqual(result.name, table.name)
+        self.assertEqual(
+            result.rows,
+            (
+                {"id": 1, "name": "JOSH", "department_id": 1, "salary": 10},
+                {"id": 2, "name": "Ruth", "department_id": 2, "salary": 60000},
+                {"id": 3, "name": "Greg", "department_id": 5, "salary": 70000},
+                {"id": 4, "name": "Pat", "department_id": 1, "salary": 80000},
+            ),
+        )
+        self.assertEqual(table.rows[0]["salary"], 50000)
+
+    def test_update_does_not_modify_table(self):
+        db = Database()
+        rows = ({"id": 1, "name": "Josh", "department_id": 1, "salary": 50000},)
+        table = Table("employee", rows)
+        db.UPDATE(
+            table, {"name": "JOSH", "salary": 10}, lambda row: row["name"] == "Josh"
+        )
+        self.assertEqual(table.rows[0]["salary"], 50000)
+
+    def test_cross_join_returns_cartesian_product(self):
+        db = Database()
+        foo = Table("foo", [{"a": 1}, {"a": 2}])
+        bar = Table("bar", [{"b": 1}, {"b": 2}])
+        self.assertEqual(
+            db.CROSS_JOIN(foo, bar).rows,
+            (
+                {"foo.a": 1, "bar.b": 1},
+                {"foo.a": 1, "bar.b": 2},
+                {"foo.a": 2, "bar.b": 1},
+                {"foo.a": 2, "bar.b": 2},
+            ),
+        )
 
 
 if __name__ == "__main__":
