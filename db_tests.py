@@ -375,6 +375,18 @@ class DatabaseTests(unittest.TestCase):
             ),
         )
 
+    def tests_limit_returns_empty_table(self):
+        db = Database()
+        table = Table("foo", [])
+        result = db.LIMIT(table, 1)
+        self.assertEqual(result.rows, ())
+
+    def tests_limit_returns_no_more_than_limit(self):
+        db = Database()
+        table = Table("foo", [{"a": 1}, {"a": 2}, {"a": 3}])
+        result = db.LIMIT(table, 2)
+        self.assertEqual(result.rows, ({"a": 1}, {"a": 2}))
+
 
 if __name__ == "__main__":
     unittest.main()
