@@ -203,6 +203,88 @@ class DatabaseTests(unittest.TestCase):
             ),
         )
 
+    def test_left_join_returns_matching_rows_on_right(self):
+        employee = Table(
+            "employee",
+            [
+                {"id": 1, "name": "Alice", "department_id": 1},
+                {"id": 2, "name": "Bob", "department_id": 2},
+            ],
+        )
+        department = Table(
+            "department",
+            [
+                {"id": 1, "title": "Accounting"},
+                {"id": 2, "title": "Engineering"},
+            ],
+        )
+        db = Database()
+        result = db.LEFT_JOIN(
+            employee,
+            department,
+            lambda row: row["employee.department_id"] == row["department.id"],
+        )
+        self.assertEqual(
+            result.rows,
+            (
+                {
+                    "department.id": 1,
+                    "department.title": "Accounting",
+                    "employee.department_id": 1,
+                    "employee.id": 1,
+                    "employee.name": "Alice",
+                },
+                {
+                    "department.id": 2,
+                    "department.title": "Engineering",
+                    "employee.department_id": 2,
+                    "employee.id": 2,
+                    "employee.name": "Bob",
+                },
+            ),
+        )
+
+    def test_left_join_fills_in_null_for_non_matching_rows(self):
+        employee = Table(
+            "employee",
+            [
+                {"id": 1, "name": "Alice", "department_id": 100},
+                {"id": 2, "name": "Bob", "department_id": 2},
+            ],
+        )
+        department = Table(
+            "department",
+            [
+                {"id": 1, "title": "Accounting"},
+                {"id": 2, "title": "Engineering"},
+            ],
+        )
+        db = Database()
+        result = db.LEFT_JOIN(
+            employee,
+            department,
+            lambda row: row["employee.department_id"] == row["department.id"],
+        )
+        self.assertEqual(
+            result.rows,
+            (
+                {
+                    "department.id": None,
+                    "department.title": None,
+                    "employee.department_id": 100,
+                    "employee.id": 1,
+                    "employee.name": "Alice",
+                },
+                {
+                    "department.id": 2,
+                    "department.title": "Engineering",
+                    "employee.department_id": 2,
+                    "employee.id": 2,
+                    "employee.name": "Bob",
+                },
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
