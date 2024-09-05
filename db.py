@@ -94,9 +94,9 @@ class Database:
                 aValues = {}
                 bValues = {}
                 for key in aRow:
-                    aValues[a["name"] + "." + key] = aRow[key]
+                    aValues[f"{a.name}.{key}"] = aRow[key]
                 for key in b.rows[0]:
-                    bValues[b["name"] + "." + key] = None
+                    bValues[f"{b.name}.{key}"] = None
                 rows.append({**aValues, **bValues})
         return Table("", rows)
 
@@ -141,20 +141,22 @@ db.INSERT_INTO("User", {"id": 5, "name": "Jeremy", "age": 28})
 db.CREATE_TABLE("Post")
 db.INSERT_INTO("Post", {"id": 0, "user_id": 1, "text": "Hello from Bob"})
 db.INSERT_INTO("Post", {"id": 1, "user_id": 0, "text": "Hello from Alice"})
+db.INSERT_INTO("Post", {"id": 2, "user_id": 10, "text": "Hello from an unknown User"})
 
 User = db.FROM("User")
-# Post = db.FROM("Post")
+Post = db.FROM("Post")
 # result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
 # result = db.SELECT(
 #     result,
 #     ["User.age", "User.name", "Post.text"],
 #     {"User.name": "Author", "Post.text": "Message"},
 # )
 # result = db.ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
-# print(result)
-
-
-result = User
-# result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
-result = db.DISTINCT(result, ["name"])
 print(result)
+
+
+# result = User
+# result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
+# result = db.DISTINCT(result, ["name"])
+# print(result)
