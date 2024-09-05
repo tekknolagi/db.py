@@ -170,6 +170,39 @@ class DatabaseTests(unittest.TestCase):
             ),
         )
 
+    def test_inner_join_returns_matching_cross_product(self):
+        user = Table("user", [{"id": 1, "name": "Alice"}])
+        post = Table(
+            "post",
+            [
+                {"id": 1, "user_id": 1, "title": "Hello"},
+                {"id": 2, "user_id": 2, "title": "Hello world"},
+                {"id": 3, "user_id": 1, "title": "Goodbye world"},
+                {"id": 2, "user_id": 3, "title": "Hello world again"},
+            ],
+        )
+        db = Database()
+        result = db.JOIN(user, post, lambda row: row["user.id"] == row["post.user_id"])
+        self.assertEqual(
+            result.rows,
+            (
+                {
+                    "post.id": 1,
+                    "post.title": "Hello",
+                    "post.user_id": 1,
+                    "user.id": 1,
+                    "user.name": "Alice",
+                },
+                {
+                    "post.id": 3,
+                    "post.title": "Goodbye world",
+                    "post.user_id": 1,
+                    "user.id": 1,
+                    "user.name": "Alice",
+                },
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

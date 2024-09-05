@@ -94,6 +94,8 @@ class Database:
     def INNER_JOIN(self, a, b, pred):
         return self.CROSS_JOIN(a, b).filter(pred)
 
+    JOIN = INNER_JOIN
+
     def LEFT_JOIN(self, a, b, pred):
         rows = []
         empty_b_row = {f"{b.name}.{k}": None for k in b.colnames()}
