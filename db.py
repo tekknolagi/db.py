@@ -49,12 +49,12 @@ class Database:
     def DROP_TABLE(self, name):
         del self.tables[name]
 
-    def FROM(self, *table_names):
-        match table_names:
-            case (table_name,):
-                return self.tables[table_name]
-            case (table_name, *rest):
-                return self.CROSS_JOIN(self.tables[table_name], self.FROM(*rest))
+    def FROM(self, first_table, *rest):
+        match rest:
+            case ():
+                return self.tables[first_table]
+            case _:
+                return self.CROSS_JOIN(self.tables[first_table], self.FROM(*rest))
 
     def SELECT(self, table, columns, aliases=None):
         if aliases is None:
@@ -70,7 +70,7 @@ class Database:
     def WHERE(self, table, pred):
         return table.filter(pred)
 
-    def INSERT_INTO(self, table_name, *rows):
+    def INSERT_INTO(self, table_name, rows):
         table = self.tables[table_name]
         table.rows = (*table.rows, *rows)
 
@@ -146,39 +146,3 @@ def csv(table):
     print(",".join(table.colnames()))
     for row in table.rows:
         print(",".join(str(val) for val in row.values()))
-
-
-db = Database()
-db.CREATE_TABLE("User", ["id", "name", "age"])
-db.INSERT_INTO("User", {"id": 0, "name": "Alice", "age": 25})
-db.INSERT_INTO("User", {"id": 1, "name": "Bob", "age": 28})
-db.INSERT_INTO("User", {"id": 2, "name": "Charles", "age": 29})
-db.INSERT_INTO("User", {"id": 3, "name": "Charles", "age": 35})
-db.INSERT_INTO("User", {"id": 4, "name": "Alice", "age": 35})
-db.INSERT_INTO("User", {"id": 5, "name": "Jeremy", "age": 28})
-db.CREATE_TABLE("Post", ["id", "user_id", "text"])
-db.INSERT_INTO("Post", {"id": 0, "user_id": 1, "text": "Hello from Bob"})
-db.INSERT_INTO("Post", {"id": 1, "user_id": 1, "text": "Hello again from Bob"})
-# db.INSERT_INTO("Post", {"id": 2, "user_id": 0, "text": "Hello from Alice"})
-# db.INSERT_INTO("Post", {"id": 3, "user_id": 10, "text": "Hello from an unknown User"})
-
-User = db.FROM("User")
-Post = db.FROM("Post")
-# result = db.CROSS_JOIN(User, Post)
-# for row in result.rows:
-#     print(row)
-# result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-# result = db.SELECT(
-#     result,
-#     ["User.age", "User.name", "Post.text"],
-#     {"User.name": "Author", "Post.text": "Message"},
-# )
-# result = db.ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
-csv(result)
-
-
-# result = User
-# result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
-# result = db.DISTINCT(result, ["name"])
-# print(result)
