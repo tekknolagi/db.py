@@ -68,15 +68,11 @@ class Database:
         rows = []
         for x in a.rows:
             for y in b.rows:
-                row = {}
-                for k in x:
-                    column_name = f"{a.name}.{k}" if a.name else k
-                    row[column_name] = x[k]
-                for k in y:
-                    column_name = f"{b.name}.{k}" if b.name else k
-                    row[column_name] = y[k]
-                row["_tableRows"] = (x, y)
-                rows.append(row)
+                rows.append({
+                    **{f"{a.name}.{k}": x[k] for k in x},
+                    **{f"{b.name}.{k}": y[k] for k in y},
+                    "_tableRows": (x, y),
+                })
         return Table("", rows)
 
     def INNER_JOIN(self, a, b, pred):
