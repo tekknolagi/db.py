@@ -1,3 +1,5 @@
+import functools
+
 database = {}
 
 
@@ -6,8 +8,12 @@ def init():
     database = {"tables": {}}
 
 
+def empty_table(name=""):
+    return {"name": name, "rows": []}
+
+
 def CREATE_TABLE(name):
-    table = {"name": name, "rows": []}
+    table = empty_table(name)
     database["tables"][name] = table
     return table
 
@@ -46,7 +52,7 @@ def INSERT_INTO(table_name, *rows):
 
 
 def CROSS_JOIN(a, b):
-    result = {"name": "", "rows": []}
+    result = empty_table()
     for x in a["rows"]:
         for y in b["rows"]:
             row = {}
@@ -65,6 +71,42 @@ def INNER_JOIN(a, b, pred):
     return {"name": "", "rows": [row for row in CROSS_JOIN(a, b)["rows"] if pred(row)]}
 
 
+def LEFT_JOIN(a, b, pred):
+    cp = CROSS_JOIN(a, b)
+    result = empty_table()
+    for aRow in a["rows"]:
+        cpa = [cpr for cpr in cp["rows"] if aRow in cpr["_tableRows"]]
+        match = [cpr for cpr in cpa if pred(cpr)]
+        if match:
+            result["rows"].extend(match)
+        else:
+            aValues = {}
+            bValues = {}
+            for key in aRow:
+                aValues[a["name"] + "." + key] = aRow[key]
+            for key in b["rows"][0]:
+                bValues[b["name"] + "." + key] = None
+            result["rows"].append({**aValues, **bValues})
+    return result
+
+
+def RIGHT_JOIN(a, b, pred):
+    return LEFT_JOIN(b, a, pred)
+
+
+def LIMIT(table, limit):
+    return {"name": table["name"], "rows": table["rows"][:limit]}
+
+
+def ORDER_BY(table, rel):
+    return {
+        "name": table["name"],
+        # JS version does sort with lambda taking a and b; Python 3 sort
+        # function takes a single argument, so we need to convert
+        "rows": sorted(table["rows"], key=functools.cmp_to_key(rel)),
+    }
+
+
 init()
 CREATE_TABLE("User")
 INSERT_INTO("User", {"id": 0, "name": "Alice", "age": 25})
@@ -78,6 +120,9 @@ User = FROM("User")
 Post = FROM("Post")
 result = INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
 result = SELECT(
-    result, ["User.name", "Post.text"], {"User.name": "Author", "Post.text": "Message"}
+    result,
+    ["User.age", "User.name", "Post.text"],
+    {"User.name": "Author", "Post.text": "Message"},
 )
+result = ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
 print(result)
