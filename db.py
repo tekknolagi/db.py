@@ -56,13 +56,9 @@ def INSERT_INTO(table_name, *rows):
 
 
 def UPDATE(table, set, pred):
-    result = {"name": table["name"], "rows": []}
-    for row in table["rows"]:
-        if pred(row):
-            result["rows"].append({**row, **set})
-        else:
-            result["rows"].append(row)
-    return result
+    return {"name": table["name"], "rows": [
+        {**row, **set} if pred(row) else row for row in table["rows"]
+    ]}
 
 
 def CROSS_JOIN(a, b):
