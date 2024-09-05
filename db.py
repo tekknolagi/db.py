@@ -86,8 +86,7 @@ class Database:
         cp = self.CROSS_JOIN(a, b)
         rows = []
         for aRow in a.rows:
-            cpa = [cpr for cpr in cp.rows if aRow in cpr["_tableRows"]]
-            match = [cpr for cpr in cpa if pred(cpr)]
+            match = [cpr for cpr in cp.rows if aRow in cpr["_tableRows"] and pred(cpr)]
             if match:
                 rows.extend(match)
             else:
