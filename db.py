@@ -173,3 +173,4 @@ result = User
 result = UPDATE(User, {"name": 'CHUCK'}, lambda row: row["id"] == 2)
 result = DISTINCT(result, ["name"])
 print(result)
+print(User)
