@@ -68,11 +68,13 @@ class Database:
         rows = []
         for x in a.rows:
             for y in b.rows:
-                rows.append({
-                    **{f"{a.name}.{k}": x[k] for k in x},
-                    **{f"{b.name}.{k}": y[k] for k in y},
-                    "_tableRows": (x, y),
-                })
+                rows.append(
+                    {
+                        **{f"{a.name}.{k}": x[k] for k in x},
+                        **{f"{b.name}.{k}": y[k] for k in y},
+                        "_tableRows": (x, y),
+                    }
+                )
         return Table("", rows)
 
     def INNER_JOIN(self, a, b, pred):
@@ -124,6 +126,15 @@ class Database:
         return f"Database({list(self.tables.keys())!r})"
 
 
+def csv(table):
+    for row in table.rows:
+        if "_tableRows" in row:
+            del row["_tableRows"]
+    print(",".join(table.rows[0].keys()))
+    for row in table.rows:
+        print(",".join(str(val) for val in row.values()))
+
+
 db = Database()
 db.CREATE_TABLE("User")
 db.INSERT_INTO("User", {"id": 0, "name": "Alice", "age": 25})
@@ -147,7 +158,7 @@ result = db.LEFT_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_i
 #     {"User.name": "Author", "Post.text": "Message"},
 # )
 # result = db.ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
-print(result)
+csv(result)
 
 
 # result = User
