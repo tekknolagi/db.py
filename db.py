@@ -118,10 +118,7 @@ class Database:
         return Table(table.name, table.rows[offset:])
 
     def DISTINCT(self, table, columns):
-        _distinct = {}
-        for row in table.rows:
-            key = US.join(str(row[col]) for col in columns)
-            _distinct[key] = row
+        _distinct = {US.join(str(row[col]) for col in columns): row for row in table.rows}
         newRows = []
         for key in _distinct:
             newRow = {}
@@ -148,18 +145,18 @@ db.INSERT_INTO("Post", {"id": 0, "user_id": 1, "text": "Hello from Bob"})
 db.INSERT_INTO("Post", {"id": 1, "user_id": 0, "text": "Hello from Alice"})
 
 User = db.FROM("User")
-Post = db.FROM("Post")
-result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
-result = db.SELECT(
-    result,
-    ["User.age", "User.name", "Post.text"],
-    {"User.name": "Author", "Post.text": "Message"},
-)
-result = db.ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
-print(result)
-
-
-# result = User
-# result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
-# result = db.DISTINCT(result, ["name"])
+# Post = db.FROM("Post")
+# result = db.INNER_JOIN(User, Post, lambda row: row["User.id"] == row["Post.user_id"])
+# result = db.SELECT(
+#     result,
+#     ["User.age", "User.name", "Post.text"],
+#     {"User.name": "Author", "Post.text": "Message"},
+# )
+# result = db.ORDER_BY(result, lambda a, b: a["User.age"] - b["User.age"])
 # print(result)
+
+
+result = User
+result = db.UPDATE(User, {"name": "CHUCK"}, lambda row: row["id"] == 2)
+result = db.DISTINCT(result, ["name"])
+print(result)
