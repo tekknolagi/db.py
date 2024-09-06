@@ -395,6 +395,46 @@ class DatabaseTests(unittest.TestCase):
             result.rows, ({"a": 1, "b": 2}, {"a": 2, "b": 2}, {"a": 3, "b": 2})
         )
 
+    def test_having_returns_matching_rows(self):
+        db = Database()
+        table = Table("foo", [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}])
+        result = db.HAVING(table, lambda row: row["a"] % 2 == 0)
+        self.assertEqual(result.rows, ({"a": 2}, {"a": 4}))
+
+    def test_offset_starts_at_given_row(self):
+        db = Database()
+        table = Table("foo", [{"a": 1}, {"a": 2}, {"a": 3}, {"a": 4}])
+        result = db.OFFSET(table, 2)
+        self.assertEqual(result.rows, ({"a": 3}, {"a": 4}))
+
+    def test_distinct_unique_on_column_names(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+                {"id": 3, "city": "South Park", "state": "Colorado"},
+                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 5, "city": "Houston", "state": "Texas"},
+                {"id": 6, "city": "Denver", "state": "Colorado"},
+                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 8, "city": "Houston", "state": "Elsewhere"},
+            ],
+        )
+        db = Database()
+        result = db.DISTINCT(friends, ["city", "state"])
+        self.assertEqual(
+            result.rows,
+            (
+                {"city": "Denver", "state": "Colorado"},
+                {"city": "Colorado Springs", "state": "Colorado"},
+                {"city": "South Park", "state": "Colorado"},
+                {"city": "Corpus Christi", "state": "Texas"},
+                {"city": "Houston", "state": "Texas"},
+                {"city": "Houston", "state": "Elsewhere"},
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
