@@ -1,5 +1,5 @@
 import unittest
-from db import Database, Table
+from db import Database, Table, query
 
 __import__("sys").modules["unittest.util"]._MAX_LENGTH = 999999999
 
@@ -577,6 +577,77 @@ class DatabaseTests(unittest.TestCase):
                     "city": "Houston",
                     "state": "Texas",
                 },
+            ),
+        )
+
+
+class EndToEndTests(unittest.TestCase):
+    def test_query(self):
+        db = Database()
+        friend = db.CREATE_TABLE("friend")
+        db.INSERT_INTO(
+            "friend",
+            [
+                {"id": 1, "name": "Alice", "city": "Denver", "state": "Colorado"},
+                {
+                    "id": 2,
+                    "name": "Bob",
+                    "city": "Colorado Springs",
+                    "state": "Colorado",
+                },
+                {"id": 3, "name": "Charles", "city": "South Park", "state": "Colorado"},
+                {"id": 4, "name": "Dave", "city": "Fort Collins", "state": "Colorado"},
+                {"id": 5, "name": "Edna", "city": "Houston", "state": "Texas"},
+                {"id": 6, "name": "Francis", "city": "Denver", "state": "Colorado"},
+                {"id": 7, "name": "Gloria", "city": "Corpus Christi", "state": "Texas"},
+                {"id": 9, "name": "Homer", "city": "Denver", "state": "Colorado"},
+            ],
+        )
+        employee = db.CREATE_TABLE("employee")
+        db.INSERT_INTO(
+            "employee",
+            [
+                {"id": 1, "name": "Alice", "department_id": 100, "salary": 100},
+                {"id": 2, "name": "Bob", "department_id": 2, "salary": 150},
+                {"id": 3, "name": "Charles", "department_id": 2, "salary": 200},
+                {"id": 4, "name": "Dave", "department_id": 1, "salary": 180},
+            ],
+        )
+        department = db.CREATE_TABLE("department")
+        db.INSERT_INTO(
+            "department",
+            [
+                {"id": 1, "title": "Accounting"},
+                {"id": 2, "title": "Engineering"},
+            ],
+        )
+        result = query(
+            db,
+            select=["employee.name", "department.title", "friend.state"],
+            select_as={
+                "employee.name": "Name",
+                "department.title": "Dept",
+                "friend.state": "From",
+            },
+            from_=["employee"],
+            join=[
+                [
+                    "department",
+                    lambda row: row["employee.department_id"] == row["department.id"],
+                ],
+                ["friend", lambda row: row["friend.name"] == row["employee.name"]],
+            ],
+            where=[
+                lambda row: row["employee.salary"] > 150,
+                lambda row: row["friend.state"] == "Colorado",
+            ],
+            order_by=lambda row: row["Dept"],
+        )
+        self.assertEqual(
+            result.rows,
+            (
+                {"Name": "Dave", "Dept": "Accounting", "From": "Colorado"},
+                {"Name": "Charles", "Dept": "Engineering", "From": "Colorado"},
             ),
         )
 

@@ -153,6 +153,43 @@ class Database:
         return f"Database({list(self.tables.keys())!r})"
 
 
+def query(
+    db,
+    select=(),
+    select_as=None,
+    distinct=None,
+    from_=None,
+    join=(),
+    where=(),
+    group_by=(),
+    having=None,
+    order_by=None,
+    offset=None,
+    limit=None,
+) -> Table:
+    if from_ is None:
+        raise ValueError("Need a FROM clause")
+    result = db.FROM(*from_)
+    for j in join:
+        table_name, pred = j
+        result = db.JOIN(result, db.tables[table_name], pred)
+    for w in where:
+        result = db.WHERE(result, w)
+    if group_by:
+        result = db.GROUP_BY(result, group_by)
+    if having:
+        result = db.HAVING(result, having)
+    if select:
+        result = db.SELECT(result, select, select_as or {})
+    if order_by:
+        result = db.ORDER_BY(result, order_by)
+    if offset:
+        result = db.OFFSET(result, offset)
+    if limit:
+        result = db.LIMIT(result, limit)
+    return result
+
+
 def csv(table):
     print(",".join(table.colnames()))
     for row in table.rows:
