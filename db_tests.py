@@ -479,6 +479,107 @@ class DatabaseTests(unittest.TestCase):
             ),
         )
 
+    def test_group_by_returns_group_rows(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+                {"id": 3, "city": "South Park", "state": "Colorado"},
+                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 5, "city": "Houston", "state": "Texas"},
+                {"id": 6, "city": "Denver", "state": "Colorado"},
+                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 8, "city": "Houston", "state": "Elsewhere"},
+            ],
+        )
+        db = Database()
+        result = db.GROUP_BY(friends, ["state"])
+        self.assertEqual(
+            result.rows,
+            (
+                {
+                    "_groupRows": [
+                        {"id": 1, "city": "Denver", "state": "Colorado"},
+                        {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+                        {"id": 3, "city": "South Park", "state": "Colorado"},
+                        {"id": 6, "city": "Denver", "state": "Colorado"},
+                    ],
+                    "state": "Colorado",
+                },
+                {
+                    "_groupRows": [
+                        {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                        {"id": 5, "city": "Houston", "state": "Texas"},
+                        {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                    ],
+                    "state": "Texas",
+                },
+                {
+                    "_groupRows": [{"id": 8, "city": "Houston", "state": "Elsewhere"}],
+                    "state": "Elsewhere",
+                },
+            ),
+        )
+
+    def test_group_by_multiple_columns(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+                {"id": 3, "city": "South Park", "state": "Colorado"},
+                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 5, "city": "Houston", "state": "Texas"},
+                {"id": 6, "city": "Denver", "state": "Colorado"},
+                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 9, "city": "Denver", "state": "Colorado"},
+            ],
+        )
+        db = Database()
+        result = db.GROUP_BY(friends, ["city", "state"])
+        self.assertEqual(
+            result.rows,
+            (
+                {
+                    "_groupRows": [
+                        {"id": 1, "city": "Denver", "state": "Colorado"},
+                        {"id": 6, "city": "Denver", "state": "Colorado"},
+                        {"id": 9, "city": "Denver", "state": "Colorado"},
+                    ],
+                    "city": "Denver",
+                    "state": "Colorado",
+                },
+                {
+                    "_groupRows": [
+                        {"id": 2, "city": "Colorado Springs", "state": "Colorado"}
+                    ],
+                    "city": "Colorado Springs",
+                    "state": "Colorado",
+                },
+                {
+                    "_groupRows": [
+                        {"id": 3, "city": "South Park", "state": "Colorado"}
+                    ],
+                    "city": "South Park",
+                    "state": "Colorado",
+                },
+                {
+                    "_groupRows": [
+                        {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                        {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                    ],
+                    "city": "Corpus Christi",
+                    "state": "Texas",
+                },
+                {
+                    "_groupRows": [{"id": 5, "city": "Houston", "state": "Texas"}],
+                    "city": "Houston",
+                    "state": "Texas",
+                },
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

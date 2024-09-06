@@ -133,6 +133,22 @@ class Database:
             [{col: _distinct[key][col] for col in columns} for key in _distinct],
         )
 
+    def GROUP_BY(self, table, groupBys):
+        US = "\x1f"  # Unit Separator
+        groupRows = {}
+        for row in table.rows:
+            key = US.join(str(row[col]) for col in groupBys)
+            if key not in groupRows:
+                groupRows[key] = []
+            groupRows[key].append(row.copy())
+        resultRows = []
+        for key in groupRows:
+            resultRow = {"_groupRows": groupRows[key]}
+            for col in groupBys:
+                resultRow[col] = groupRows[key][0][col]
+            resultRows.append(resultRow)
+        return Table(table.name, resultRows)
+
     def __repr__(self):
         return f"Database({list(self.tables.keys())!r})"
 
