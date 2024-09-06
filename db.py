@@ -1,7 +1,5 @@
 """A medium-faithful port of https://github.com/weinberg/SQLToy to Python"""
 
-import functools
-
 
 class Table:
     def __init__(self, name: str, rows: tuple[dict] = ()):
