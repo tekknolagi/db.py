@@ -99,6 +99,28 @@ class DatabaseTests(unittest.TestCase):
             ),
         )
 
+    def test_from_with_three_tables_returns_cartesian_product(self):
+        db = Database()
+        db.CREATE_TABLE("foo")
+        db.INSERT_INTO("foo", [{"a": 1}, {"a": 2}])
+        db.CREATE_TABLE("bar")
+        db.INSERT_INTO("bar", [{"b": 1}, {"b": 2}])
+        db.CREATE_TABLE("baz")
+        db.INSERT_INTO("baz", [{"c": 1}, {"c": 2}])
+        self.assertEqual(
+            db.FROM("foo", "bar", "baz").rows,
+            (
+                {"bar.b": 1, "baz.c": 1, "foo.a": 1},
+                {"bar.b": 1, "baz.c": 2, "foo.a": 1},
+                {"bar.b": 2, "baz.c": 1, "foo.a": 1},
+                {"bar.b": 2, "baz.c": 2, "foo.a": 1},
+                {"bar.b": 1, "baz.c": 1, "foo.a": 2},
+                {"bar.b": 1, "baz.c": 2, "foo.a": 2},
+                {"bar.b": 2, "baz.c": 1, "foo.a": 2},
+                {"bar.b": 2, "baz.c": 2, "foo.a": 2},
+            ),
+        )
+
     def test_select_returns_table_with_no_columns(self):
         db = Database()
         table = Table("foo", [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}])

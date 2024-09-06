@@ -72,15 +72,17 @@ class Database:
 
     def CROSS_JOIN(self, a, b):
         rows = []
+        a_prefix = f"{a.name}." if a.name else ""
+        b_prefix = f"{b.name}." if b.name else ""
         for x in a.rows:
             for y in b.rows:
                 rows.append(
                     {
-                        **{f"{a.name}.{k}": x[k] for k in a.colnames()},
-                        **{f"{b.name}.{k}": y[k] for k in b.colnames()},
+                        **{f"{a_prefix}{k}": x[k] for k in a.colnames()},
+                        **{f"{b_prefix}{k}": y[k] for k in b.colnames()},
                     }
                 )
-        return Table(f"{a.name}_{b.name}", rows)
+        return Table("", rows)
 
     def INNER_JOIN(self, a, b, pred):
         return self.CROSS_JOIN(a, b).filter(pred)
@@ -103,7 +105,7 @@ class Database:
                     added = True
             if not added:
                 rows.append({**mangled_a_row, **empty_b_row})
-        return Table(f"{a.name}_{b.name}", rows)
+        return Table("", rows)
 
     def RIGHT_JOIN(self, a, b, pred):
         return self.LEFT_JOIN(b, a, pred)
