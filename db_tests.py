@@ -123,7 +123,29 @@ class DatabaseTests(unittest.TestCase):
         result = db.WHERE(table, lambda row: row["a"] % 2 == 0)
         self.assertEqual(result.rows, ({"a": 2}, {"a": 4}))
 
-    def test_update_returns_updated_table(self):
+    def test_update_returns_updated_table_with_all_rows_modified(self):
+        db = Database()
+        rows = (
+            {"id": 1, "name": "Josh", "department_id": 1, "salary": 50000},
+            {"id": 2, "name": "Ruth", "department_id": 2, "salary": 60000},
+            {"id": 3, "name": "Greg", "department_id": 5, "salary": 70000},
+            {"id": 4, "name": "Pat", "department_id": 1, "salary": 80000},
+        )
+        table = Table("employee", rows)
+        result = db.UPDATE(table, {"salary": 10})
+        self.assertEqual(result.name, table.name)
+        self.assertEqual(
+            result.rows,
+            (
+                {"id": 1, "name": "Josh", "department_id": 1, "salary": 10},
+                {"id": 2, "name": "Ruth", "department_id": 2, "salary": 10},
+                {"id": 3, "name": "Greg", "department_id": 5, "salary": 10},
+                {"id": 4, "name": "Pat", "department_id": 1, "salary": 10},
+            ),
+        )
+        self.assertEqual(table.rows[0]["salary"], 50000)
+
+    def test_update_returns_updated_table_with_pred(self):
         db = Database()
         rows = (
             {"id": 1, "name": "Josh", "department_id": 1, "salary": 50000},

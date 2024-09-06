@@ -74,7 +74,7 @@ class Database:
         table = self.tables[table_name]
         table.rows = (*table.rows, *rows)
 
-    def UPDATE(self, table, set, pred):
+    def UPDATE(self, table, set, pred=lambda _: True):
         return Table(
             table.name, [{**row, **set} if pred(row) else row for row in table.rows]
         )
