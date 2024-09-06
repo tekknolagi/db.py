@@ -451,7 +451,34 @@ class DatabaseTests(unittest.TestCase):
         result = db.OFFSET(table, 2)
         self.assertEqual(result.rows, ({"a": 3}, {"a": 4}))
 
-    def test_distinct_unique_on_column_names(self):
+    def test_distinct_unique_on_one_column_name(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+                {"id": 3, "city": "South Park", "state": "Colorado"},
+                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 5, "city": "Houston", "state": "Texas"},
+                {"id": 6, "city": "Denver", "state": "Colorado"},
+                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+                {"id": 8, "city": "Houston", "state": "Elsewhere"},
+            ],
+        )
+        db = Database()
+        result = db.DISTINCT(friends, ["city"])
+        self.assertEqual(
+            result.rows,
+            (
+                {"city": "Denver"},
+                {"city": "Colorado Springs"},
+                {"city": "South Park"},
+                {"city": "Corpus Christi"},
+                {"city": "Houston"},
+            ),
+        )
+
+    def test_distinct_unique_on_two_column_names(self):
         friends = Table(
             "friends",
             [

@@ -124,14 +124,14 @@ class Database:
         return Table(table.name, table.rows[offset:])
 
     def DISTINCT(self, table, columns):
-        US = "\x1f"  # Unit Separator
-        _distinct = {
-            US.join(str(row[col]) for col in columns): row for row in table.rows
-        }
-        return Table(
-            table.name,
-            [{col: _distinct[key][col] for col in columns} for key in _distinct],
-        )
+        seen = set()
+        rows = []
+        for row in table.rows:
+            view = tuple((col, row[col]) for col in columns)
+            if view not in seen:
+                seen.add(view)
+                rows.append(dict(view))
+        return Table(table.name, rows)
 
     def GROUP_BY(self, table, groupBys):
         US = "\x1f"  # Unit Separator
