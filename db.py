@@ -134,18 +134,17 @@ class Database:
         return Table(table.name, rows)
 
     def GROUP_BY(self, table, groupBys):
-        US = "\x1f"  # Unit Separator
         groupRows = {}
         for row in table.rows:
-            key = US.join(str(row[col]) for col in groupBys)
+            key = tuple(row[col] for col in groupBys)
             if key not in groupRows:
                 groupRows[key] = []
             groupRows[key].append(row.copy())
         resultRows = []
-        for key in groupRows:
-            resultRow = {"_groupRows": groupRows[key]}
+        for group in groupRows.values():
+            resultRow = {"_groupRows": group}
             for col in groupBys:
-                resultRow[col] = groupRows[key][0][col]
+                resultRow[col] = group[0][col]
             resultRows.append(resultRow)
         return Table(table.name, resultRows)
 
