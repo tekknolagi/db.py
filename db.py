@@ -28,16 +28,12 @@ class Table:
         return f"Table({self.name!r}, {list(self.rows)!r})"
 
 
-def empty_table(name=""):
-    return Table(name)
-
-
 class Database:
     def __init__(self):
         self.tables = {}
 
     def CREATE_TABLE(self, name, colnames=()):
-        table = empty_table(name)
+        table = Table(name)
         if colnames:
             table.set_colnames(colnames)
         self.tables[name] = table
