@@ -32,9 +32,6 @@ def empty_table(name=""):
     return Table(name)
 
 
-US = "\x1f"  # Unit Separator
-
-
 class Database:
     def __init__(self):
         self.tables = {}
@@ -131,6 +128,7 @@ class Database:
         return Table(table.name, table.rows[offset:])
 
     def DISTINCT(self, table, columns):
+        US = "\x1f"  # Unit Separator
         _distinct = {
             US.join(str(row[col]) for col in columns): row for row in table.rows
         }
