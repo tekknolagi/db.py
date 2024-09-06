@@ -80,7 +80,7 @@ class Database:
                         **{f"{b.name}.{k}": y[k] for k in b.colnames()},
                     }
                 )
-        return Table("", rows)
+        return Table(f"{a.name}_{b.name}", rows)
 
     def INNER_JOIN(self, a, b, pred):
         return self.CROSS_JOIN(a, b).filter(pred)
@@ -103,7 +103,7 @@ class Database:
                     added = True
             if not added:
                 rows.append({**mangled_a_row, **empty_b_row})
-        return Table("", rows)
+        return Table(f"{a.name}_{b.name}", rows)
 
     def RIGHT_JOIN(self, a, b, pred):
         return self.LEFT_JOIN(b, a, pred)
