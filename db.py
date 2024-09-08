@@ -148,6 +148,31 @@ class Database:
             resultRows.append(resultRow)
         return Table(table.name, resultRows)
 
+    def _aggregate(self, table, col, agg_name, agg):
+        grouped = table.rows and "_groupRows" in table.rows[0]
+        col_name = f"{agg_name}({col})"
+        if not grouped:
+            return Table("", [{col_name: agg(table.rows)}])
+        rows = []
+        for row in table.rows:
+            new_row = {}
+            for key, value in row.items():
+                if key == "_groupRows":
+                    new_row[col_name] = agg(value)
+                else:
+                    new_row[key] = value
+            rows.append(new_row)
+        return Table("", rows)
+
+    def COUNT(self, table, col):
+        return self._aggregate(table, col, "COUNT", len)
+
+    def MAX(self, table, col):
+        return self._aggregate(table, col, "MAX", lambda rows: max(row[col] for row in rows))
+
+    def SUM(self, table, col):
+        return self._aggregate(table, col, "SUM", lambda rows: sum(row[col] for row in rows))
+
     def __repr__(self):
         return f"Database({list(self.tables.keys())!r})"
 

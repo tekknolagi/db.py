@@ -645,6 +645,93 @@ class EndToEndTests(unittest.TestCase):
             ),
         )
 
+    def test_count_returns_count(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Houston", "state": "Texas"},
+                {"id": 3, "city": "Colorado Springs", "state": "Colorado"},
+            ],
+        )
+        db = Database()
+        result = db.COUNT(friends, "city")
+        self.assertEqual(result.rows, ({"COUNT(city)": 3},))
+
+    def test_count_group_by_returns_count(self):
+        friends = Table(
+            "friends",
+            [
+                {"id": 1, "city": "Denver", "state": "Colorado"},
+                {"id": 2, "city": "Houston", "state": "Texas"},
+                {"id": 3, "city": "Colorado Springs", "state": "Colorado"},
+            ],
+        )
+        db = Database()
+        result = db.GROUP_BY(friends, ["state"])
+        result = db.COUNT(result, "city")
+        self.assertEqual(
+            result.rows,
+            (
+                {"COUNT(city)": 2, "state": "Colorado"},
+                {"COUNT(city)": 1, "state": "Texas"},
+            ),
+        )
+
+    def test_max_group_by_returns_max(self):
+        scores = Table(
+            "scores",
+            [
+                {"id": 1, "name": "Alice", "test": 0, "score": 80},
+                {"id": 4, "name": "Bob", "test": 0, "score": 89},
+                {"id": 7, "name": "Charles", "test": 0, "score": 34},
+                {"id": 2, "name": "Alice", "test": 1, "score": 85},
+                {"id": 5, "name": "Bob", "test": 1, "score": 85},
+                {"id": 8, "name": "Charles", "test": 1, "score": 33},
+                {"id": 3, "name": "Alice", "test": 2, "score": 79},
+                {"id": 9, "name": "Charles", "test": 2, "score": 32},
+                {"id": 6, "name": "Bob", "test": 2, "score": 87},
+            ],
+        )
+        db = Database()
+        result = db.GROUP_BY(scores, ["name"])
+        result = db.MAX(result, "score")
+        self.assertEqual(
+            result.rows,
+            (
+                {"MAX(score)": 85, "name": "Alice"},
+                {"MAX(score)": 89, "name": "Bob"},
+                {"MAX(score)": 34, "name": "Charles"},
+            ),
+        )
+
+    def test_sum_group_by_returns_sum(self):
+        scores = Table(
+            "scores",
+            [
+                {"id": 1, "name": "Alice", "test": 0, "score": 80},
+                {"id": 4, "name": "Bob", "test": 0, "score": 89},
+                {"id": 7, "name": "Charles", "test": 0, "score": 34},
+                {"id": 2, "name": "Alice", "test": 1, "score": 85},
+                {"id": 5, "name": "Bob", "test": 1, "score": 85},
+                {"id": 8, "name": "Charles", "test": 1, "score": 33},
+                {"id": 3, "name": "Alice", "test": 2, "score": 79},
+                {"id": 9, "name": "Charles", "test": 2, "score": 32},
+                {"id": 6, "name": "Bob", "test": 2, "score": 87},
+            ],
+        )
+        db = Database()
+        result = db.GROUP_BY(scores, ["name"])
+        result = db.SUM(result, "score")
+        self.assertEqual(
+            result.rows,
+            (
+                {"SUM(score)": 244, "name": "Alice"},
+                {"SUM(score)": 261, "name": "Bob"},
+                {"SUM(score)": 99, "name": "Charles"},
+            ),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
