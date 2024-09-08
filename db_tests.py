@@ -4,6 +4,21 @@ from db import Database, Table, query
 __import__("sys").modules["unittest.util"]._MAX_LENGTH = 999999999
 
 
+FRIENDS = Table(
+    "friends",
+    [
+        {"id": 1, "city": "Denver", "state": "Colorado"},
+        {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
+        {"id": 3, "city": "South Park", "state": "Colorado"},
+        {"id": 4, "city": "Corpus Christi", "state": "Texas"},
+        {"id": 5, "city": "Houston", "state": "Texas"},
+        {"id": 6, "city": "Denver", "state": "Colorado"},
+        {"id": 7, "city": "Corpus Christi", "state": "Texas"},
+        {"id": 8, "city": "Houston", "state": "Elsewhere"},
+    ],
+)
+
+
 class DatabaseTests(unittest.TestCase):
     def test_create_table(self):
         db = Database()
@@ -452,21 +467,8 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(result.rows, ({"a": 3}, {"a": 4}))
 
     def test_distinct_unique_on_one_column_name(self):
-        friends = Table(
-            "friends",
-            [
-                {"id": 1, "city": "Denver", "state": "Colorado"},
-                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
-                {"id": 3, "city": "South Park", "state": "Colorado"},
-                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 5, "city": "Houston", "state": "Texas"},
-                {"id": 6, "city": "Denver", "state": "Colorado"},
-                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 8, "city": "Houston", "state": "Elsewhere"},
-            ],
-        )
         db = Database()
-        result = db.DISTINCT(friends, ["city"])
+        result = db.DISTINCT(FRIENDS, ["city"])
         self.assertEqual(
             result.rows,
             (
@@ -479,21 +481,8 @@ class DatabaseTests(unittest.TestCase):
         )
 
     def test_distinct_unique_on_two_column_names(self):
-        friends = Table(
-            "friends",
-            [
-                {"id": 1, "city": "Denver", "state": "Colorado"},
-                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
-                {"id": 3, "city": "South Park", "state": "Colorado"},
-                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 5, "city": "Houston", "state": "Texas"},
-                {"id": 6, "city": "Denver", "state": "Colorado"},
-                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 8, "city": "Houston", "state": "Elsewhere"},
-            ],
-        )
         db = Database()
-        result = db.DISTINCT(friends, ["city", "state"])
+        result = db.DISTINCT(FRIENDS, ["city", "state"])
         self.assertEqual(
             result.rows,
             (
@@ -507,21 +496,8 @@ class DatabaseTests(unittest.TestCase):
         )
 
     def test_group_by_returns_group_rows(self):
-        friends = Table(
-            "friends",
-            [
-                {"id": 1, "city": "Denver", "state": "Colorado"},
-                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
-                {"id": 3, "city": "South Park", "state": "Colorado"},
-                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 5, "city": "Houston", "state": "Texas"},
-                {"id": 6, "city": "Denver", "state": "Colorado"},
-                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 8, "city": "Houston", "state": "Elsewhere"},
-            ],
-        )
         db = Database()
-        result = db.GROUP_BY(friends, ["state"])
+        result = db.GROUP_BY(FRIENDS, ["state"])
         self.assertEqual(
             result.rows,
             (
@@ -550,21 +526,8 @@ class DatabaseTests(unittest.TestCase):
         )
 
     def test_group_by_multiple_columns(self):
-        friends = Table(
-            "friends",
-            [
-                {"id": 1, "city": "Denver", "state": "Colorado"},
-                {"id": 2, "city": "Colorado Springs", "state": "Colorado"},
-                {"id": 3, "city": "South Park", "state": "Colorado"},
-                {"id": 4, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 5, "city": "Houston", "state": "Texas"},
-                {"id": 6, "city": "Denver", "state": "Colorado"},
-                {"id": 7, "city": "Corpus Christi", "state": "Texas"},
-                {"id": 9, "city": "Denver", "state": "Colorado"},
-            ],
-        )
         db = Database()
-        result = db.GROUP_BY(friends, ["city", "state"])
+        result = db.GROUP_BY(FRIENDS, ["city", "state"])
         self.assertEqual(
             result.rows,
             (
@@ -572,7 +535,6 @@ class DatabaseTests(unittest.TestCase):
                     "_groupRows": [
                         {"id": 1, "city": "Denver", "state": "Colorado"},
                         {"id": 6, "city": "Denver", "state": "Colorado"},
-                        {"id": 9, "city": "Denver", "state": "Colorado"},
                     ],
                     "city": "Denver",
                     "state": "Colorado",
@@ -603,6 +565,11 @@ class DatabaseTests(unittest.TestCase):
                     "_groupRows": [{"id": 5, "city": "Houston", "state": "Texas"}],
                     "city": "Houston",
                     "state": "Texas",
+                },
+                {
+                    "_groupRows": [{"id": 8, "city": "Houston", "state": "Elsewhere"}],
+                    "city": "Houston",
+                    "state": "Elsewhere",
                 },
             ),
         )
