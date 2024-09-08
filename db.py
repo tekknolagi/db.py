@@ -152,7 +152,7 @@ class Database:
         grouped = table.rows and "_groupRows" in table.rows[0]
         col_name = f"{agg_name}({col})"
         if not grouped:
-            return Table("", [{col_name: agg(table.rows)}])
+            return Table(table.name, [{col_name: agg(table.rows)}])
         rows = []
         for row in table.rows:
             new_row = {}
@@ -162,7 +162,7 @@ class Database:
                 else:
                     new_row[key] = value
             rows.append(new_row)
-        return Table("", rows)
+        return Table(table.name, rows)
 
     def COUNT(self, table, col):
         return self._aggregate(table, col, "COUNT", len)
