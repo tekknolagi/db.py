@@ -1,5 +1,7 @@
 """A medium-faithful port of https://github.com/weinberg/SQLToy to Python"""
 
+from __future__ import annotations
+
 from typing import Any, Callable, Dict, Iterable, Optional, Set, Tuple
 
 
@@ -19,7 +21,7 @@ class Table:
             raise ValueError("Need either rows or manually specified column names")
         return tuple(sorted(self.rows[0].keys()))
 
-    def filter(self, pred: Callable[[Dict[str, Any]], bool]) -> "Table":
+    def filter(self, pred: Callable[[Dict[str, Any]], bool]) -> Table:
         return Table(self.name, [row for row in self.rows if pred(row)])
 
     def __repr__(self) -> str:
